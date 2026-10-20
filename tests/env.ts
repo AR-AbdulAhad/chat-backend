@@ -1,0 +1,9 @@
+process.env.NODE_ENV = "test";
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? "postgresql://amai:amai_dev@127.0.0.1:5432/amai_test";
+process.env.JWT_ACCESS_SECRET = "test-secret-test-secret-test-secret-123456";
+process.env.CALL_RING_TIMEOUT_SEC = "2";
+process.env.RUN_WORKER_IN_PROCESS = "true";
+process.env.FCM_ENABLED = "false";
+process.env.TURN_URLS = "turn:turn.test:3478";
+process.env.TURN_SECRET = "turn-secret";
+process.env.MESSAGE_EDIT_WINDOW_MIN = "15";
