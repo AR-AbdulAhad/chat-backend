@@ -47,6 +47,10 @@ const schema = z.object({
   MAX_CIPHERTEXT_CHARS: z.coerce.number().int().default(96_000),
 
   FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
+  FIREBASE_PROJECT_ID: z.string().optional(),
+  FIREBASE_CLIENT_EMAIL: z.string().optional(),
+  FIREBASE_PRIVATE_KEY: z.string().optional(),
   FCM_ENABLED: bool.default(true),
 
   STUN_URLS: z.string().default("stun:stun.l.google.com:19302"),

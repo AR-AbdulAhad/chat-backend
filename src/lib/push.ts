@@ -21,12 +21,60 @@ class FcmSender implements PushSender {
   private app: App | null = null;
 
   constructor() {
-    if (!env.FCM_ENABLED || !env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-      if (!isTest) logger.warn("FCM disabled: set FIREBASE_SERVICE_ACCOUNT_PATH to enable push notifications");
+    if (!env.FCM_ENABLED) {
       return;
     }
-    const sa = JSON.parse(readFileSync(env.FIREBASE_SERVICE_ACCOUNT_PATH, "utf8"));
-    this.app = initializeApp({ credential: cert(sa) }, "amai");
+
+    const sa = this.loadServiceAccount();
+    if (!sa) {
+      if (!isTest) {
+        logger.warn(
+          "FCM disabled: set FIREBASE_SERVICE_ACCOUNT_JSON, individual FIREBASE_* env variables, or FIREBASE_SERVICE_ACCOUNT_PATH to enable push notifications",
+        );
+      }
+      return;
+    }
+
+    try {
+      this.app = initializeApp({ credential: cert(sa) }, "amai");
+    } catch (err: any) {
+      logger.error({ err }, "Failed to initialize Firebase Admin app");
+    }
+  }
+
+  private loadServiceAccount(): any {
+    // 1. Direct JSON or Base64 string in .env
+    if (env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      try {
+        const raw = env.FIREBASE_SERVICE_ACCOUNT_JSON.trim();
+        const jsonStr = raw.startsWith("{") ? raw : Buffer.from(raw, "base64").toString("utf8");
+        return JSON.parse(jsonStr);
+      } catch (err) {
+        logger.error({ err }, "Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON");
+        return null;
+      }
+    }
+
+    // 2. Individual environment variables in .env
+    if (env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+      return {
+        projectId: env.FIREBASE_PROJECT_ID,
+        clientEmail: env.FIREBASE_CLIENT_EMAIL,
+        privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      };
+    }
+
+    // 3. Fallback: file path
+    if (env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      try {
+        return JSON.parse(readFileSync(env.FIREBASE_SERVICE_ACCOUNT_PATH, "utf8"));
+      } catch (err) {
+        logger.error({ err }, "Failed to read FIREBASE_SERVICE_ACCOUNT_PATH");
+        return null;
+      }
+    }
+
+    return null;
   }
 
   async send(token: string, payload: PushPayload) {
