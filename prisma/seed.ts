@@ -14,8 +14,8 @@ if (env.NODE_ENV === "production") {
 }
 
 const people = [
-  { slot: 1, email: "dev.one@amai.local", displayName: "Ayaan", password: "dev-password-one" },
-  { slot: 2, email: "dev.two@amai.local", displayName: "Zara", password: "dev-password-two" },
+  { slot: 1, email: "abdulahad010274@gmail.com", displayName: "Ahad", password: "@Ahad12345" },
+  { slot: 2, email: "amaidahussain2020@gmail.com", displayName: "Amaida", password: "@Amai12345" },
 ];
 
 for (const p of people) {
