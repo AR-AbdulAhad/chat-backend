@@ -140,28 +140,26 @@ export async function sendMessage(userId: string, input: SendInput) {
 
   const full = await emitMessage("message:new", created.id, [userId, partnerId]);
 
-  if (!(await isOnline(partnerId))) {
-    const sender = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { displayName: true } });
-    const settings = await prisma.userSettings.findUnique({ where: { userId: partnerId } });
-    const small = (input.ciphertext.length ?? 0) <= 3000;
-    void pushToUser(partnerId, {
-      priority: "high",
-      collapseKey: `msg_${created.id}`,
-      data: {
-        type: "message",
-        messageId: created.id,
-        clientId: input.clientId,
-        conversationId,
-        senderId: userId,
-        senderName: sender.displayName,
-        msgType: input.type,
-        preview: settings?.notificationPreview ?? "full",
-        createdAt: created.createdAt.toISOString(),
-        // Ciphertext lets the device decrypt a preview locally; the server cannot read it.
-        ...(small ? { ciphertext: input.ciphertext, nonce: input.nonce, encVersion: String(input.encVersion ?? 1) } : {}),
-      },
-    });
-  }
+  const sender = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { displayName: true } });
+  const settings = await prisma.userSettings.findUnique({ where: { userId: partnerId } });
+  const small = (input.ciphertext.length ?? 0) <= 3000;
+  void pushToUser(partnerId, {
+    priority: "high",
+    collapseKey: `msg_${created.id}`,
+    data: {
+      type: "message",
+      messageId: created.id,
+      clientId: input.clientId,
+      conversationId,
+      senderId: userId,
+      senderName: sender.displayName,
+      msgType: input.type,
+      preview: settings?.notificationPreview ?? "full",
+      createdAt: created.createdAt.toISOString(),
+      // Ciphertext lets the device decrypt a preview locally; the server cannot read it.
+      ...(small ? { ciphertext: input.ciphertext, nonce: input.nonce, encVersion: String(input.encVersion ?? 1) } : {}),
+    },
+  });
   return { message: serialize(full, userId, await receiptVisibility([userId, partnerId])), duplicate: false };
 }
 

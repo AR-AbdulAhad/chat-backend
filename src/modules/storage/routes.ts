@@ -41,13 +41,16 @@ storageRouter.get("/file", async (req, res) => {
 
   try {
     const filePath = getSafeFilePath(key);
+    let stat;
     try {
-      await fs.promises.access(filePath);
+      stat = await fs.promises.stat(filePath);
     } catch {
       return res.status(404).json({ error: { code: "file_not_found" } });
     }
 
     res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Length", stat.size);
+    res.setHeader("Accept-Ranges", "bytes");
     const src = fs.createReadStream(filePath);
     await pipeline(src, res);
   } catch (err) {

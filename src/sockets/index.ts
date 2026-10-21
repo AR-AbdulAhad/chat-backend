@@ -187,6 +187,8 @@ export function createSocketServer(http: HttpServer) {
       if (left === 0) {
         await prisma.user.update({ where: { id: ctx.userId }, data: { lastSeenAt: new Date() } }).catch(() => undefined);
         void broadcastPresence(ctx.userId);
+        const partnerId = await partnerIdOf(ctx.userId);
+        if (partnerId) emitToUsers([partnerId], "typing", { userId: ctx.userId, active: false });
       }
     });
   });
