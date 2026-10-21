@@ -53,13 +53,15 @@ export function verifyStorageSignature(action: "get" | "put", key: string, expir
 
 class LocalStorage implements Storage {
   async presignPut(key: string, _sizeBytes: number, baseUrl?: string): Promise<string> {
-    const base = (baseUrl || env.PUBLIC_API_URL).replace(/\/+$/, "");
+    const effectiveBase = env.PUBLIC_API_URL?.startsWith("https://") ? env.PUBLIC_API_URL : (baseUrl || env.PUBLIC_API_URL);
+    const base = effectiveBase.replace(/\/+$/, "");
     const { expires, sig } = signStorageUrl("put", key);
     return `${base}/api/v1/storage/file?key=${encodeURIComponent(key)}&expires=${expires}&sig=${sig}`;
   }
 
   async presignGet(key: string, baseUrl?: string): Promise<string> {
-    const base = (baseUrl || env.PUBLIC_API_URL).replace(/\/+$/, "");
+    const effectiveBase = env.PUBLIC_API_URL?.startsWith("https://") ? env.PUBLIC_API_URL : (baseUrl || env.PUBLIC_API_URL);
+    const base = effectiveBase.replace(/\/+$/, "");
     const { expires, sig } = signStorageUrl("get", key);
     return `${base}/api/v1/storage/file?key=${encodeURIComponent(key)}&expires=${expires}&sig=${sig}`;
   }
